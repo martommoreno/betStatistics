@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partidas de Futebol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Partidas de Futebol</h2>
+        <form id="dateForm" method="POST" action="/fetch_data">
+            <label for="dateInput">Data:</label>
+            <input type="date" id="dateInput" name="date">
+            <button type="submit">Buscar</button>
+        </form>
+        <div id="output" class="output">
+            {% if fixtures %}
+                <h3>Partidas em {{ fixtures[0][3] }}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Casa</th>
+                            <th>Visitante</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fixture in fixtures %}
+                            <tr>
+                                <td>{{ fixture[0] }}</td>
+                                <td>{{ fixture[1] }}</td>
+                                <td>{{ fixture[2] }}</td>
+                                <td>{{ fixture[3] }}</td>
+                                <td>
+                                    <button onclick="fetchStatistics('{{ fixture[0] }}')">Estatísticas</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhuma partida encontrada para a data selecionada.</p>
+            {% endif %}
+        </div>
+    </div>
+    <br>
+    <h1>Football Fixtures</h1>
+    <table border="1">
+        <tr>
+            <th>ID   Team</th>
+            <th>Home Team</th>
+            <th>Away Team</th>
+            <th>Date Match</th>
+            <th>Timestamp</th>
+        </tr>
+        {% for fixture in fixtures %}
+        <tr>
+            <td>{{ fixture[0] }}</td>
+            <td>{{ fixture[1] }}</td>
+            <td>{{ fixture[2] }}</td>
+            <td>{{ fixture[3] }}</td>
+            <td>{{ fixture[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+       <h1>Soccer Scores</h1>
+    <ul>
+        {% for score in scores %}
+            <li>{{ score.team1 }}: {{ score.score1 }} vs {{ score.team2 }}: {{ score.score2 }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Live Match Information</h1>
+    <ul>
+        {% for match in matches %}
+            <li>
+                {{ match.home_team }} vs {{ match.away_team }}<br>
+                Start Time: {{ match.commence_time }}<br>
+                Odds:
+                {% for bookmaker in match.bookmakers %}
+                    {{ bookmaker.title }}:
+                    {% for market in bookmaker.markets %}
+                        {% for outcome in market.outcomes %}
+                            {{ outcome.name }} - {{ outcome.price }}
+                        {% endfor %}
+                    {% endfor %}
+                {% endfor %}
+            </li>
+        {% endfor %}
+    </ul>
+
+ <script>
+        function fetchStatistics(fixtureId) {
+            alert(fixtureId)
+            fetch('/generate_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fixture_id: fixtureId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Processar os dados recebidos
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+            });
+
+        // Função para definir a data atual no campo de data
+
+        function setCurrentDate() {
+            const dateInput = document.getElementById('dateInput');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const currentDate = `${year}-${month}-${day}`;
+            dateInput.value = currentDate;
+        }
+
+        // Chama a função para definir a data atual quando a página é carregada
+        window.onload = setCurrentDate;
+
+        }
+
+    </script>
+</body>
+</html>
